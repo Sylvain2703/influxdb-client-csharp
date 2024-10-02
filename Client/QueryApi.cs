@@ -237,6 +237,28 @@ namespace InfluxDB.Client
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Executes the Flux query against the InfluxDB 2.x and returns
+        /// an asynchronous enumerable of <see cref="FluxRecord"/>.
+        /// </summary>
+        /// <param name="query">the flux query to execute</param>
+        /// <param name="org">specifies the source organization. If the org is not specified then is used config from <see cref="InfluxDBClientOptions.Org" />.</param>
+        /// <param name="cancellationToken">cancellation token</param>
+        /// <returns>An asynchronous enumerable of <see cref="FluxRecord"/>.</returns>
+        IAsyncEnumerable<FluxRecord> QueryAsyncEnumerable(string query, string org = null,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Executes the Flux query against the InfluxDB 2.x and returns
+        /// an asynchronous enumerable of <see cref="FluxRecord"/>.
+        /// </summary>
+        /// <param name="query">the flux query to execute</param>
+        /// <param name="org">specifies the source organization. If the org is not specified then is used config from <see cref="InfluxDBClientOptions.Org" />.</param>
+        /// <param name="cancellationToken">cancellation token</param>
+        /// <returns>An asynchronous enumerable of <see cref="FluxRecord"/>.</returns>
+        IAsyncEnumerable<FluxRecord> QueryAsyncEnumerable(Query query, string org = null,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Executes the Flux query against the InfluxDB and synchronously map whole response to <see cref="string"/> result.
         /// 
         /// <para>
@@ -445,13 +467,8 @@ namespace InfluxDB.Client
         public async IAsyncEnumerable<T> QueryAsyncEnumerable<T>(string query, string org = null,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            Arguments.CheckNonEmptyString(query, nameof(query));
-
-            var requestMessage = CreateRequest(CreateQuery(query), org);
-
-            await foreach (var record in QueryEnumerable(requestMessage, it => Mapper.ConvertToEntity<T>(it),
-                               cancellationToken).ConfigureAwait(false))
-                yield return record;
+            await foreach (var record in QueryAsyncEnumerable(query, org, cancellationToken).ConfigureAwait(false))
+                yield return Mapper.ConvertToEntity<T>(record);
         }
 
         /// <summary>
@@ -466,13 +483,41 @@ namespace InfluxDB.Client
         public async IAsyncEnumerable<T> QueryAsyncEnumerable<T>(Query query, string org = null,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            await foreach (var record in QueryAsyncEnumerable(query, org, cancellationToken).ConfigureAwait(false))
+                yield return Mapper.ConvertToEntity<T>(record);
+        }
+
+        /// <summary>
+        /// Executes the Flux query against the InfluxDB 2.x and returns
+        /// an asynchronous enumerable of <see cref="FluxRecord"/>.
+        /// </summary>
+        /// <param name="query">the flux query to execute</param>
+        /// <param name="org">specifies the source organization. If the org is not specified then is used config from <see cref="InfluxDBClientOptions.Org" />.</param>
+        /// <param name="cancellationToken">cancellation token</param>
+        /// <returns>An asynchronous enumerable of <see cref="FluxRecord"/>.</returns>
+        public IAsyncEnumerable<FluxRecord> QueryAsyncEnumerable(string query, string org = null,
+            CancellationToken cancellationToken = default)
+        {
+            Arguments.CheckNonEmptyString(query, nameof(query));
+
+            return QueryAsyncEnumerable(CreateQuery(query), org, cancellationToken);
+        }
+
+        /// <summary>
+        /// Executes the Flux query against the InfluxDB 2.x and returns
+        /// an asynchronous enumerable of <see cref="FluxRecord"/>.
+        /// </summary>
+        /// <param name="query">the flux query to execute</param>
+        /// <param name="org">specifies the source organization. If the org is not specified then is used config from <see cref="InfluxDBClientOptions.Org" />.</param>
+        /// <param name="cancellationToken">cancellation token</param>
+        /// <returns>An asynchronous enumerable of <see cref="FluxRecord"/>.</returns>
+        public IAsyncEnumerable<FluxRecord> QueryAsyncEnumerable(Query query, string org = null,
+            CancellationToken cancellationToken = default)
+        {
             Arguments.CheckNotNull(query, nameof(query));
 
-            var requestMessage = CreateRequest(query, org);
-
-            await foreach (var record in QueryEnumerable(requestMessage, it => Mapper.ConvertToEntity<T>(it),
-                               cancellationToken).ConfigureAwait(false))
-                yield return record;
+            var request = CreateRequest(query, org);
+            return QueryEnumerable(request, cancellationToken);
         }
 
         /// <summary>

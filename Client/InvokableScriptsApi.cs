@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -254,8 +253,7 @@ namespace InfluxDB.Client
         {
             var requestMessage = CreateRequest(scriptId, bindParams);
 
-            await foreach (var record in QueryEnumerable(requestMessage, it => it, cancellationToken)
-                               .ConfigureAwait(false))
+            await foreach (var record in QueryEnumerable(requestMessage, cancellationToken).ConfigureAwait(false))
                 yield return record;
         }
 
@@ -272,9 +270,8 @@ namespace InfluxDB.Client
         {
             var requestMessage = CreateRequest(scriptId, bindParams);
 
-            await foreach (var record in QueryEnumerable(requestMessage, it => Mapper.ConvertToEntity<T>(it),
-                               cancellationToken).ConfigureAwait(false))
-                yield return record;
+            await foreach (var record in QueryEnumerable(requestMessage, cancellationToken).ConfigureAwait(false))
+                yield return Mapper.ConvertToEntity<T>(record);
         }
 
         protected override void BeforeIntercept(RestRequest request)

@@ -188,16 +188,15 @@ namespace InfluxDB.Client.Core.Internal
             }
         }
 
-        protected async IAsyncEnumerable<T> QueryEnumerable<T>(
+        protected async IAsyncEnumerable<FluxRecord> QueryEnumerable(
             RestRequest query,
-            Func<FluxRecord, T> convert,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             Arguments.CheckNotNull(query, nameof(query));
 
             query.Interceptors = new List<Interceptor>
             {
-                new RequestBeforeAfterInterceptor<T>(
+                new RequestBeforeAfterInterceptor<FluxRecord>(
                     BeforeIntercept,
                     (statusCode, headers, body) => AfterIntercept(statusCode, headers, body)
                 )
@@ -209,7 +208,7 @@ namespace InfluxDB.Client.Core.Internal
                                .ConfigureAwait(false))
                 if (!(record is null))
                 {
-                    yield return convert.Invoke(record);
+                    yield return record;
                 }
         }
 
