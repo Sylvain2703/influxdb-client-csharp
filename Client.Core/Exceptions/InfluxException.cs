@@ -103,7 +103,7 @@ namespace InfluxDB.Client.Core.Exceptions
                 if (content is Stream)
                 {
                     var stream = content as Stream;
-                    var sr = new StreamReader(stream);
+                    using var sr = new StreamReader(stream);
                     stringBody = sr.ReadToEnd();
                 }
                 else
