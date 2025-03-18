@@ -20,7 +20,6 @@ namespace InfluxDB.Client.Core.Internal
     public abstract class AbstractQueryClient : AbstractRestClient
     {
         protected static readonly Action EmptyAction = () => { };
-
         protected static readonly Action<Exception> ErrorConsumer = e => throw e;
 
         private readonly FluxCsvParser _csvParser;
@@ -42,8 +41,8 @@ namespace InfluxDB.Client.Core.Internal
 
         protected Task Query(RestRequest query,
             FluxCsvParser.IFluxResponseConsumer responseConsumer,
-            Action<Exception> onError,
-            Action onComplete, CancellationToken cancellationToken)
+            Action<Exception> onError, Action onComplete,
+            CancellationToken cancellationToken)
         {
             void Consumer(Stream bufferedStream)
             {
@@ -62,8 +61,8 @@ namespace InfluxDB.Client.Core.Internal
 
         protected Task QueryRaw(RestRequest query,
             Action<string> onResponse,
-            Action<Exception> onError,
-            Action onComplete, CancellationToken cancellationToken)
+            Action<Exception> onError, Action onComplete,
+            CancellationToken cancellationToken)
         {
             void Consumer(Stream bufferedStream)
             {
@@ -85,8 +84,7 @@ namespace InfluxDB.Client.Core.Internal
 
         protected void QuerySync(RestRequest query,
             FluxCsvParser.IFluxResponseConsumer responseConsumer,
-            Action<Exception> onError,
-            Action onComplete,
+            Action<Exception> onError, Action onComplete,
             CancellationToken cancellationToken)
         {
             void Consumer(Stream bufferedStream)
@@ -104,9 +102,11 @@ namespace InfluxDB.Client.Core.Internal
             QuerySync(query, Consumer, onError, onComplete, cancellationToken);
         }
 
+
         private async Task Query(RestRequest query,
             Action<Stream> consumer,
-            Action<Exception> onError, Action onComplete, CancellationToken cancellationToken)
+            Action<Exception> onError, Action onComplete,
+            CancellationToken cancellationToken)
         {
             Arguments.CheckNotNull(query, nameof(query));
             Arguments.CheckNotNull(consumer, nameof(consumer));
@@ -137,7 +137,8 @@ namespace InfluxDB.Client.Core.Internal
 
         private void QuerySync(RestRequest query,
             Action<Stream> consumer,
-            Action<Exception> onError, Action onComplete, CancellationToken cancellationToken)
+            Action<Exception> onError, Action onComplete,
+            CancellationToken cancellationToken)
         {
             Arguments.CheckNotNull(query, nameof(query));
             Arguments.CheckNotNull(consumer, nameof(consumer));
@@ -186,6 +187,7 @@ namespace InfluxDB.Client.Core.Internal
                 }
         }
 
+
         protected abstract void BeforeIntercept(RestRequest query);
 
         protected abstract T AfterIntercept<T>(int statusCode, Func<IEnumerable<HeaderParameter>> headers, T body);
@@ -231,6 +233,79 @@ namespace InfluxDB.Client.Core.Internal
             }
         }
 
+        private static async Task<Stream> GetStreamFromResponseAsync(
+            HttpResponseMessage response, CancellationToken cancellationToken)
+        {
+#if NET5_0_OR_GREATER
+            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+#else
+            var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+#endif
+
+            if (response.Content.Headers.ContentEncoding.Any(x => "gzip".Equals(x, StringComparison.OrdinalIgnoreCase)))
+            {
+                stream = new GZipStream(stream, CompressionMode.Decompress);
+            }
+
+            return stream;
+        }
+
+        protected static void ThrowOnInfluxError(HttpResponseMessage httpResponse, object body)
+        {
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            throw HttpException.Create(httpResponse, body);
+        }
+
+        protected static void ThrowOnInfluxError(RestResponse restResponse, object body)
+        {
+            if (restResponse.IsSuccessful)
+            {
+                return;
+            }
+
+            if (restResponse.ErrorException is InfluxException)
+            {
+                throw restResponse.ErrorException;
+            }
+
+            throw HttpException.Create(restResponse, body);
+        }
+
+        protected static void CatchOrPropagateException(Exception exception, Action<Exception> onError)
+        {
+            Arguments.CheckNotNull(exception, nameof(exception));
+            Arguments.CheckNotNull(onError, nameof(onError));
+
+            //
+            // Socket closed by remote server or end of data
+            //
+            if (exception is EndOfStreamException)
+            {
+                Trace.WriteLine("Socket closed by remote server or end of data",
+                    InfluxDBTraceFilter.CategoryInfluxQueryError);
+                Trace.WriteLine(exception, InfluxDBTraceFilter.CategoryInfluxQueryError);
+            }
+            else
+            {
+                onError(exception);
+            }
+        }
+
+        private static RestResponse CreateRestResponse(HttpResponseMessage response, RestRequest request)
+        {
+            return new RestResponse(request)
+            {
+                ErrorException = response.IsSuccessStatusCode
+                    ? null
+                    : new HttpRequestException($"Request failed with status code {response.StatusCode}")
+            };
+        }
+
+
         public class FluxResponseConsumerPoco : FluxCsvParser.IFluxResponseConsumer
         {
             private readonly Action<object> _onNext;
@@ -275,6 +350,26 @@ namespace InfluxDB.Client.Core.Internal
             }
         }
 
+        protected class FluxResponseConsumerRecord : FluxCsvParser.IFluxResponseConsumer
+        {
+            private readonly Action<FluxRecord> _onNext;
+
+            public FluxResponseConsumerRecord(Action<FluxRecord> onNext)
+            {
+                _onNext = onNext;
+            }
+
+            public void Accept(int index, FluxTable table)
+            {
+            }
+
+            public void Accept(int index, FluxRecord record)
+            {
+                _onNext(record);
+            }
+        }
+
+
         public static string GetDefaultDialect()
         {
             var json = new JObject();
@@ -300,97 +395,6 @@ namespace InfluxDB.Client.Core.Internal
             }
 
             return json.ToString();
-        }
-
-        protected static void CatchOrPropagateException(Exception exception, Action<Exception> onError)
-        {
-            Arguments.CheckNotNull(exception, nameof(exception));
-            Arguments.CheckNotNull(onError, nameof(onError));
-
-            //
-            // Socket closed by remote server or end of data
-            //
-            if (exception is EndOfStreamException)
-            {
-                Trace.WriteLine("Socket closed by remote server or end of data",
-                    InfluxDBTraceFilter.CategoryInfluxQueryError);
-                Trace.WriteLine(exception, InfluxDBTraceFilter.CategoryInfluxQueryError);
-            }
-            else
-            {
-                onError(exception);
-            }
-        }
-
-        protected static void ThrowOnInfluxError(RestResponse restResponse, object body)
-        {
-            if (restResponse.IsSuccessful)
-            {
-                return;
-            }
-
-            if (restResponse.ErrorException is InfluxException)
-            {
-                throw restResponse.ErrorException;
-            }
-
-            throw HttpException.Create(restResponse, body);
-        }
-
-        protected static void ThrowOnInfluxError(HttpResponseMessage httpResponse, object body)
-        {
-            if (httpResponse.IsSuccessStatusCode)
-            {
-                return;
-            }
-
-            throw HttpException.Create(httpResponse, body);
-        }
-
-        protected class FluxResponseConsumerRecord : FluxCsvParser.IFluxResponseConsumer
-        {
-            private readonly Action<FluxRecord> _onNext;
-
-            public FluxResponseConsumerRecord(Action<FluxRecord> onNext)
-            {
-                _onNext = onNext;
-            }
-
-            public void Accept(int index, FluxTable table)
-            {
-            }
-
-            public void Accept(int index, FluxRecord record)
-            {
-                _onNext(record);
-            }
-        }
-
-        private static RestResponse CreateRestResponse(HttpResponseMessage response, RestRequest request)
-        {
-            return new RestResponse(request)
-            {
-                ErrorException = response.IsSuccessStatusCode
-                    ? null
-                    : new HttpRequestException($"Request failed with status code {response.StatusCode}")
-            };
-        }
-
-        private static async Task<Stream> GetStreamFromResponseAsync(
-            HttpResponseMessage response, CancellationToken cancellationToken)
-        {
-#if NET5_0_OR_GREATER
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-#else
-            var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-#endif
-
-            if (response.Content.Headers.ContentEncoding.Any(x => "gzip".Equals(x, StringComparison.OrdinalIgnoreCase)))
-            {
-                stream = new GZipStream(stream, CompressionMode.Decompress);
-            }
-
-            return stream;
         }
     }
 }
