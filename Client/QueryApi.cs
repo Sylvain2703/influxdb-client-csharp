@@ -87,7 +87,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream <see cref="FluxRecord"/>
-        /// to <see cref="onNext"/> consumer.
+        /// to <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onNext">the callback to consume the FluxRecord result</param>
@@ -101,7 +101,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream <see cref="FluxRecord"/>
-        /// to <see cref="onNext"/> consumer.
+        /// to <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onNext">the callback to consume the FluxRecord result</param>
@@ -115,7 +115,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream Measurements
-        /// to a <see cref="onNext"/> consumer.
+        /// to a <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onNext">the callback to consume the mapped Measurements</param>
@@ -130,7 +130,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream Measurements
-        /// to a <see cref="onNext"/> consumer.
+        /// to a <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onNext">the callback to consume the mapped Measurements</param>
@@ -181,7 +181,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream Measurements
-        /// to a <see cref="onNext"/> consumer.
+        /// to a <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="pocoType">the type of measurement</param>
@@ -197,7 +197,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream Measurements
-        /// to a <see cref="onNext"/> consumer.
+        /// to a <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="pocoType">the type of measurement</param>
@@ -294,7 +294,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream response
-        /// (line by line) to <see cref="onResponse"/>.
+        /// (line by line) to <paramref name="onResponse"/>.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onResponse">the callback to consume the response line by line</param>
@@ -310,7 +310,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream response
-        /// (line by line) to <see cref="onResponse"/>.
+        /// (line by line) to <paramref name="onResponse"/>.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onResponse">the callback to consume the response line by line</param>
@@ -516,7 +516,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream <see cref="FluxRecord"/>
-        /// to <see cref="onNext"/> consumer.
+        /// to <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onNext">the callback to consume the FluxRecord result</param>
@@ -538,7 +538,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream <see cref="FluxRecord"/>
-        /// to <see cref="onNext"/> consumer.
+        /// to <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onNext">the callback to consume the FluxRecord result</param>
@@ -560,7 +560,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream Measurements
-        /// to a <see cref="onNext"/> consumer.
+        /// to a <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onNext">the callback to consume the mapped Measurements</param>
@@ -583,7 +583,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream Measurements
-        /// to a <see cref="onNext"/> consumer.
+        /// to a <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onNext">the callback to consume the mapped Measurements</param>
@@ -654,7 +654,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream Measurements
-        /// to a <see cref="onNext"/> consumer.
+        /// to a <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="pocoType">the type of measurement</param>
@@ -674,7 +674,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream Measurements
-        /// to a <see cref="onNext"/> consumer.
+        /// to a <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="pocoType">the type of measurement</param>
@@ -755,7 +755,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream response
-        /// (line by line) to <see cref="onResponse"/>.
+        /// (line by line) to <paramref name="onResponse"/>.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onResponse">the callback to consume the response line by line</param>
@@ -777,7 +777,7 @@ namespace InfluxDB.Client
 
         /// <summary>
         /// Executes the Flux query against the InfluxDB 2.x and asynchronously stream response
-        /// (line by line) to <see cref="onResponse"/>.
+        /// (line by line) to <paramref name="onResponse"/>.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onResponse">the callback to consume the response line by line</param>

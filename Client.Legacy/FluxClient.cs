@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +41,7 @@ namespace InfluxDB.Client.Flux
         Task<List<T>> QueryAsync<T>(string query, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Executes the Flux query against the InfluxDB and asynchronously stream <see cref="FluxRecord"/> to <see cref="onNext"/> consumer.
+        /// Executes the Flux query against the InfluxDB and asynchronously stream <see cref="FluxRecord"/> to <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onNext">the callback to consume the FluxRecord result</param>
@@ -82,7 +81,7 @@ namespace InfluxDB.Client.Flux
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Executes the Flux query against the InfluxDB and asynchronously stream response (line by line) to <see cref="onResponse"/>.
+        /// Executes the Flux query against the InfluxDB and asynchronously stream response (line by line) to <paramref name="onResponse"/>.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onResponse">the callback to consume the response line by line</param>
@@ -165,7 +164,7 @@ namespace InfluxDB.Client.Flux
             var version = AssemblyHelper.GetVersion(typeof(FluxClient));
             var restClientOptions = new RestClientOptions(options.Url)
             {
-                MaxTimeout = (int)options.Timeout.TotalMilliseconds,
+                Timeout = options.Timeout,
                 UserAgent = $"influxdb-client-csharp/{version}",
                 Proxy = options.WebProxy
             };
@@ -233,7 +232,7 @@ namespace InfluxDB.Client.Flux
         }
 
         /// <summary>
-        /// Executes the Flux query against the InfluxDB and asynchronously stream <see cref="FluxRecord"/> to <see cref="onNext"/> consumer.
+        /// Executes the Flux query against the InfluxDB and asynchronously stream <see cref="FluxRecord"/> to <paramref name="onNext"/> consumer.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onNext">the callback to consume the FluxRecord result</param>
@@ -304,7 +303,7 @@ namespace InfluxDB.Client.Flux
         }
 
         /// <summary>
-        /// Executes the Flux query against the InfluxDB and asynchronously stream response (line by line) to <see cref="onResponse"/>.
+        /// Executes the Flux query against the InfluxDB and asynchronously stream response (line by line) to <paramref name="onResponse"/>.
         /// </summary>
         /// <param name="query">the flux query to execute</param>
         /// <param name="onResponse">the callback to consume the response line by line</param>

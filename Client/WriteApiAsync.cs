@@ -18,7 +18,7 @@ namespace InfluxDB.Client
         /// <summary>
         /// Write Line Protocol record into specified bucket.
         /// </summary>
-        /// <param name="record">specifies the record in InfluxDB Line Protocol. The <see cref="record" /> is considered as one batch unit. </param>
+        /// <param name="record">specifies the record in InfluxDB Line Protocol. The <paramref name="record" /> is considered as one batch unit. </param>
         /// <param name="precision">specifies the precision for the unix timestamps within the body line-protocol; default Nanoseconds</param>
         /// <param name="bucket">specifies the destination bucket for writes. If the bucket is not specified then is used config from <see cref="InfluxDBClientOptions.Bucket" />.</param>
         /// <param name="org">specifies the destination organization for writes. If the org is not specified then is used config from <see cref="InfluxDBClientOptions.Org" />.</param>
@@ -181,7 +181,7 @@ namespace InfluxDB.Client
         /// <summary>
         /// Write Line Protocol record into specified bucket.
         /// </summary>
-        /// <param name="record">specifies the record in InfluxDB Line Protocol. The <see cref="record" /> is considered as one batch unit. </param>
+        /// <param name="record">specifies the record in InfluxDB Line Protocol. The <paramref name="record" /> is considered as one batch unit. </param>
         /// <param name="precision">specifies the precision for the unix timestamps within the body line-protocol; default Nanoseconds</param>
         /// <param name="bucket">specifies the destination bucket for writes. If the bucket is not specified then is used config from <see cref="InfluxDBClientOptions.Bucket" />.</param>
         /// <param name="org">specifies the destination organization for writes. If the org is not specified then is used config from <see cref="InfluxDBClientOptions.Org" />.</param>
