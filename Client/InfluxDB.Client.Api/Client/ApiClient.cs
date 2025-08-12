@@ -12,12 +12,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text.RegularExpressions;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using InfluxDB.Client.Core.Internal;
 using Newtonsoft.Json;
@@ -55,7 +55,7 @@ namespace InfluxDB.Client.Api.Client
         /// </summary>
         public ApiClient()
         {
-            Configuration = InfluxDB.Client.Api.Client.Configuration.Default;
+            Configuration = Client.Configuration.Default;
             RestClient = new RestClient("http://localhost/api/v2");
         }
 
@@ -66,7 +66,7 @@ namespace InfluxDB.Client.Api.Client
         /// <param name="config">An instance of Configuration.</param>
         public ApiClient(Configuration config)
         {
-            Configuration = config ?? InfluxDB.Client.Api.Client.Configuration.Default;
+            Configuration = config ?? Client.Configuration.Default;
 
             RestClient = new RestClient(Configuration.BasePath);
         }
@@ -180,7 +180,7 @@ namespace InfluxDB.Client.Api.Client
             var response = RestClient.ExecuteSync(request);
             InterceptResponse(request, response);
 
-            return (object)response;
+            return response;
         }
 
         /// <summary>
@@ -206,10 +206,12 @@ namespace InfluxDB.Client.Api.Client
             var request = PrepareRequest(
                 path, method, queryParams, postBody, headerParams, formParams, fileParams,
                 pathParams, contentType);
+
             InterceptRequest(request);
             var response = await RestClient.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
             InterceptResponse(request, response);
-            return (object)response;
+
+            return response;
         }
 
         /// <summary>

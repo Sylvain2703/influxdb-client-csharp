@@ -20,9 +20,10 @@ namespace InfluxDB.Client.Core.Internal
         protected static readonly Action EmptyAction = () => { };
         protected static readonly Action<Exception> ErrorConsumer = e => throw e;
 
-        private readonly FluxCsvParser _csvParser;
-
         protected RestClient RestClient;
+        private RestClient _throwingRestClient = null;
+
+        private readonly FluxCsvParser _csvParser;
         protected readonly IFluxResultMapper Mapper;
 
         protected AbstractQueryClient(IFluxResultMapper mapper) : this(mapper, new FluxCsvParser())
@@ -174,8 +175,14 @@ namespace InfluxDB.Client.Core.Internal
 
             query.Interceptors = new List<Interceptor> { new BeforeAfterRequestInterceptor(this, null) };
 
-            using var stream = await RestClient.DownloadStreamAsync(query, cancellationToken).ConfigureAwait(false);
-            using var sr = new StreamReader(stream);
+            // Workaround: use a dedicated instance of RestClient that throws exceptions on any error,
+            // because when using DownloadStreamAsync, there is no other way to get the details of errors that
+            // occur before the AfterRequest interceptor is triggered (e.g. connection issue, request timeout, etc.).
+            // See https://github.com/restsharp/RestSharp/pull/2128 + https://github.com/restsharp/RestSharp/issues/2189.
+            var restClient = GetThrowingRestClient();
+
+            using var stream = await restClient.DownloadStreamAsync(query, cancellationToken).ConfigureAwait(false);
+            using var sr = new StreamReader(stream ?? throw new InvalidOperationException("Missing response stream."));
 
             await foreach (var (_, record) in _csvParser
                                .ParseFluxResponseAsync(sr, cancellationToken).ConfigureAwait(false))
@@ -183,6 +190,19 @@ namespace InfluxDB.Client.Core.Internal
                 {
                     yield return convert.Invoke(record);
                 }
+        }
+
+        private RestClient GetThrowingRestClient()
+        {
+            if (_throwingRestClient == null)
+            {
+                var options = RestClient.Options.Copy();
+                options.ThrowOnAnyError = true; // The reason we create another RestClient!
+
+                _throwingRestClient = new RestClient(options);
+            }
+
+            return _throwingRestClient;
         }
 
 
