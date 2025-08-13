@@ -100,6 +100,11 @@ namespace InfluxDB.Client.Core.Internal
 
         public object AfterIntercept(int statusCode, Func<IEnumerable<HeaderParameter>> headers, object body)
         {
+            if (body is Stream stream && headers().HasHeader("Content-Encoding", "gzip"))
+            {
+                return new GZipStream(stream, CompressionMode.Decompress);
+            }
+
             return body;
         }
     }

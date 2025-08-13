@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -222,32 +220,27 @@ namespace InfluxDB.Client.Core.Internal
             public override async ValueTask AfterHttpRequest(
                 HttpResponseMessage response, CancellationToken cancellationToken)
             {
-                var stream = await GetStreamFromResponseAsync(response, cancellationToken);
-                stream = _queryClient.AfterIntercept(
+#if NET5_0_OR_GREATER
+                var originalStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+#else
+                var originalStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+#endif
+
+                var stream = _queryClient.AfterIntercept(
                     (int)response.StatusCode,
                     () => response.Headers.ToHeaderParameters(response.Content.Headers),
-                    stream);
+                    originalStream);
+
+                // When an interceptor reads the stream (e.g. LoggingHandler), it normally returns a new readable stream.
+                // The response content must therefore be updated with this new stream.
+                if (!ReferenceEquals(originalStream, stream))
+                {
+                    response.Content = new StreamContent(stream);
+                }
 
                 ThrowOnInfluxError(response, stream);
                 _resultStreamConsumer?.Invoke(stream);
             }
-        }
-
-        private static async Task<Stream> GetStreamFromResponseAsync(
-            HttpResponseMessage response, CancellationToken cancellationToken)
-        {
-#if NET5_0_OR_GREATER
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-#else
-            var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-#endif
-
-            if (response.Content.Headers.ContentEncoding.Any(x => "gzip".Equals(x, StringComparison.OrdinalIgnoreCase)))
-            {
-                stream = new GZipStream(stream, CompressionMode.Decompress);
-            }
-
-            return stream;
         }
 
         protected static void ThrowOnInfluxError(HttpResponseMessage httpResponse, object body)

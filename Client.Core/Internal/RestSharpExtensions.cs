@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -21,6 +22,13 @@ namespace InfluxDB.Client.Core.Internal
                 .Concat(httpContentHeaders ?? Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>())
                 .SelectMany(x => x.Value.Select(y => (x.Key, y)))
                 .Select(x => new HeaderParameter(x.Key, x.y));
+        }
+
+        internal static bool HasHeader(this IEnumerable<HeaderParameter> headers, string name, string value)
+        {
+            return headers.Any(h =>
+                name.Equals(h.Name, StringComparison.OrdinalIgnoreCase) &&
+                value.Equals(h.Value, StringComparison.OrdinalIgnoreCase));
         }
 
         internal static RestResponse ExecuteSync(this RestClient client,

@@ -86,9 +86,8 @@ namespace InfluxDB.Client.Core.Internal
             {
                 string stringBody;
 
-                if (body is Stream)
+                if (body is Stream stream)
                 {
-                    var stream = body as Stream;
                     using var sr = new StreamReader(stream);
                     stringBody = sr.ReadToEnd();
 
